@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small Remedies, get a prescription</title>
+<style>
+/* A prescription made out to the visitor, in the project's own type:
+   Playfair for the heads, IM Fell for the chemist, Special Elite for the typed dose, Homemade Apple for the hand. */
+@font-face { font-family: 'PF'; src: url('../fonts/playfair-display-latin-900-normal.woff2') format('woff2'); }
+@font-face { font-family: 'PFSC'; src: url('../fonts/playfair-display-sc-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fell'; src: url('../fonts/im-fell-english-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fell'; src: url('../fonts/im-fell-english-latin-400-italic.woff2') format('woff2'); font-style: italic; }
+@font-face { font-family: 'Type'; src: url('../fonts/special-elite-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Hand'; src: url('../fonts/homemade-apple-latin-400-normal.woff2') format('woff2'); }
+:root { --c: #24584A; --paper: #FBF6EA; --ink: #1F1A14; --red: #B1302A; --pen: #2C4566; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: transparent; color: var(--ink); font-family: 'Fell', Georgia, serif; -webkit-font-smoothing: antialiased; }
+.wrap { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 460px); gap: clamp(24px, 5vw, 70px); justify-content: center; align-items: start; padding: 10px 12px 16px; }
+.ctl h3 { font: 900 30px/1.05 'PF', Georgia, serif; color: var(--ink); }
+.ctl p { font-size: 17px; line-height: 1.4; margin: 8px 0 18px; color: #4a4238; }
+label { display: block; font: 13px 'PFSC', serif; letter-spacing: .1em; color: var(--c); margin: 16px 0 6px; transition: color .4s; }
+input { width: 100%; border: 0; border-bottom: 1.5px dotted #8b8173; background: transparent; padding: 6px 2px; font: 20px 'Hand', cursive; color: var(--pen); }
+input:focus { outline: none; border-bottom-color: var(--c); }
+.tr { display: grid; gap: 8px; }
+.tr button { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; border: 1.5px solid #d9d0bd; background: var(--paper); border-radius: 4px; padding: 10px 12px; font: 17px 'Fell', serif; color: var(--ink); cursor: pointer; }
+.tr button i { width: 14px; height: 14px; border-radius: 2px; }
+.tr button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.tr button:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.go { margin-top: 18px; border: 0; background: var(--c); color: #fff; font: 15px 'PFSC', serif; letter-spacing: .12em; padding: 12px 18px; border-radius: 3px; cursor: pointer; transition: background .4s; }
+/* the slip */
+.rx { background: var(--paper); box-shadow: 0 1px 0 #e6ddc9, 0 24px 40px -24px rgba(0,0,0,.4); position: relative; }
+.pnl { padding: 18px 20px 16px; border-bottom: 1px solid #e4dccb; position: relative; }
+.hd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.hd .big { font: 900 italic 46px/1 'PF', serif; color: var(--c); transition: color .4s; }
+.hd .co { text-align: right; font: 14px 'PFSC', serif; letter-spacing: .06em; color: var(--c); transition: color .4s; }
+.hd .co small { display: block; font: italic 12px 'Fell', serif; letter-spacing: 0; color: var(--ink); }
+.hd .co b { display: block; font: 13px 'Fell', serif; color: var(--red); font-weight: 400; margin-top: 2px; }
+.mono { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--c); display: grid; place-items: center; font: 900 italic 18px 'PF', serif; color: var(--c); box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--c); transition: color .4s, border-color .4s; }
+.line { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 90px); gap: 6px; align-items: end; margin-top: 14px; font-size: 15px; }
+.line span.v, .cmp span.v { border-bottom: 1.5px dotted #8b8173; font: 17px/1.6 'Hand', cursive; color: var(--pen); padding-left: 8px; min-height: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmp { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: end; margin-top: 6px; font-size: 15px; }
+.sec { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--c); padding-bottom: 4px; transition: border-color .4s; }
+.sec b { font: 16px 'PFSC', serif; letter-spacing: .1em; color: var(--c); transition: color .4s; }
+.sec span { font: 15px 'Type', monospace; }
+.dose { font: 15px/1.55 'Type', monospace; margin-top: 10px; min-height: 50px; }
+.note { text-align: right; font: 15px 'Hand', cursive; color: var(--pen); margin-top: 6px; transform: rotate(-3deg); }
+.caution { border: 1.5px solid var(--red); padding: 12px 14px; margin: 0 20px 0; }
+.caution b { font: 14px 'PFSC', serif; letter-spacing: .08em; color: var(--red); }
+.caution p { font-size: 16px; line-height: 1.35; margin-top: 4px; }
+.foot { display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 20px 18px; }
+.sig { font: 17px 'Hand', cursive; color: var(--pen); border-bottom: 1.5px dotted #8b8173; padding: 0 20px 2px 4px; }
+.sig + small { display: block; font: italic 12px 'Fell', serif; }
+.stamp { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--red); color: var(--red); display: grid; place-content: center; text-align: center; font: 10px 'Type', monospace; letter-spacing: .06em; opacity: .85; transform: rotate(-12deg) scale(.4); box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 6px var(--red); transition: transform .35s cubic-bezier(.3,1.8,.5,1), opacity .2s; }
+.stamp b { font: 17px 'Type', monospace; margin: 2px 0; }
+.stamp.on { transform: rotate(-12deg) scale(1); }
+@media (max-width: 760px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .stamp { transition: none; } }
+</style></head>
+<body>
+<div class="wrap">
+  <div class="ctl">
+    <h3>Get a prescription</h3>
+    <p>Tell the chemist your name and your London trouble. It will be made out, signed and stamped.</p>
+    <label for="nm">Your name</label>
+    <input id="nm" value="A. Londoner" maxlength="22" autocomplete="off">
+    <label>Your complaint</label>
+    <div class="tr" id="tr"></div>
+    <button class="go" type="button" id="go">Dispense</button>
+  </div>
+  <div class="rx" id="rx">
+    <div class="pnl">
+      <div class="hd"><span class="big">Rx</span><div class="co">Small Remedies &amp; Co.<small>Dispensing Chemists · Brockley, S.E.</small><b id="no">No. 0172</b></div><span class="mono">GS</span></div>
+      <div class="line"><span>Name</span><span class="v" id="vn">A. Londoner</span><span>Date</span><span class="v" id="vd"></span></div>
+      <div class="cmp"><span>Complaint</span><span class="v" id="vc"></span></div>
+    </div>
+    <div class="pnl"><div class="sec"><b>Prescribed</b><span id="vr"></span></div><p class="dose" id="dose"></p><p class="note" id="nt"></p></div>
+    <div class="pnl" style="border:0;padding:16px 0 0"><div class="caution"><b>Caution · Possible side effects</b><p id="se"></p></div></div>
+    <div class="foot"><div><span class="sig">G. Singh</span><small>Dispensing chemist</small></div><div class="stamp" id="st">DISPENSED<b id="sw"></b>BROCKLEY S.E.</div></div>
+  </div>
+</div>
+<script>
+// the three remedies, word for word from the printed prescriptions
+const T = {
+  train: { b: 'Missed the last train', c: '#2C4566', cmp: 'missed the last train', r: 'Patience 500 mg', no: '0031', dose: 'Take ONE pill as the doors close. Do not give chase. Do not curse aloud. Await the night omnibus.', nt: 'with dignity!', se: 'May occasion a sudden fondness for night buses, a forty-minute walk, and a detour via the chicken shop.', st: '00:31' },
+  rain: { b: 'Rain on the commute', c: '#24584A', cmp: 'rain on the commute', r: 'Resilience 250 mg', no: '0172', dose: 'Take ONE at the bus stop. Apply hood liberally. Never, ever open an umbrella on the escalator.', nt: 'hood up!', se: 'Prolonged talk of the weather. A steamed-up top deck. The odour of damp wool until Thursday.', st: 'WET' },
+  rent: { b: 'Rent day', c: '#B1302A', cmp: 'rent day, again', r: 'Fortitude 28-day', no: '0028', dose: 'ONE each morning until the first. Double the dose should the landlord write "quick one".', nt: 'hang on in there', se: 'Meal deals. Evenings "staying in". Consulting one’s balance with one eye shut.', st: '1st' },
+};
+const $ = (id) => document.getElementById(id), root = document.documentElement;
+$('tr').innerHTML = Object.entries(T).map(([k, t]) => `<button type="button" data-k="${k}" aria-pressed="${k === 'rain'}"><i style="background:${t.c}"></i>${t.b}</button>`).join('');
+let cur = 'rain';
+const d = new Date(), date = `${d.getDate()} ${d.toLocaleString('en-GB', { month: 'short' })}`;
+function fill(stamp) {
+  const t = T[cur]; root.style.setProperty('--c', t.c);
+  $('vn').textContent = $('nm').value.trim() || 'A. Londoner'; $('vd').textContent = date; $('vc').textContent = t.cmp;
+  $('vr').textContent = t.r; $('no').textContent = 'No. ' + t.no; $('dose').textContent = t.dose; $('nt').textContent = t.nt; $('se').textContent = t.se; $('sw').textContent = t.st;
+  $('st').classList.remove('on'); if (stamp) setTimeout(() => $('st').classList.add('on'), 60);
+}
+$('tr').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; cur = b.dataset.k; document.querySelectorAll('#tr button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); fill(true); });
+$('nm').addEventListener('input', () => fill(false));
+$('go').addEventListener('click', () => fill(true));
+fill(true);
+</script>
+</body></html>
