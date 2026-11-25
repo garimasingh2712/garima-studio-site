@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work · Garima Singh Studio</title>
+<meta name="description" content="Garima Singh, graphic and motion designer in London: cover art, packaging, type, print and things you can spin, tilt, tear and open.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="site.css?v=1795613807">
+</head>
+<body>
+<header class="bar m">
+  <a class="name" href="index.html">Garima Singh<span>Studio</span></a>
+  <button class="radio mid" type="button" data-radio aria-pressed="false"><span class="dot"></span><span class="rl">Play radio</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+  <nav><a href="work.html" aria-current="page">Work</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav>
+</header>
+<main>
+<div class="phead"><div><h1>Work</h1><p class="m mute hint">10 projects · UI/UX first</p></div><div class="tags" role="group" aria-label="Filter the work"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="ui" aria-pressed="false">UI/UX</button><button type="button" data-f="motion" aria-pressed="false">Motion</button><button type="button" data-f="graphics" aria-pressed="false">Graphics</button><button type="button" data-f="type" aria-pressed="false">Type</button><button type="button" data-f="print" aria-pressed="false">Print</button></div></div>
+<div class="vbar"><span class="m mute" id="count">Showing 10</span><div class="view m" role="group" aria-label="View"><button type="button" data-v="list" aria-pressed="true">Index</button><button type="button" data-v="grid" aria-pressed="false">Grid</button></div></div>
+<section class="idx" id="idx" aria-label="All projects"></section>
+<div class="peek" id="peek" aria-hidden="true"></div>
+</main>
+<footer class="slim m">
+  <span class="mute">© 2026 Garima Singh · London</span>
+  <span><a href="work.html">Work</a> · <a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="https://garima-product-site.vercel.app" target="_blank" rel="noopener">Product site ↗</a></span>
+</footer>
+<script src="data.js?v=1795613807"></script>
+<script src="radio.js?v=1795613807"></script>
+<script>
+  // the index: one row per project. Point at a row and its picture floats beside the cursor
+  const idx = document.getElementById('idx'), peek = document.getElementById('peek');
+  idx.innerHTML = P.map((p) => `<a class="ix${p.k.includes('ui') ? ' is-ui' : ''}" href="${href(p)}" data-k="${p.k.join(' ')}" data-s="${p.s}">
+      ${FRAME(p, 'th')}<span class="no">${num(p)}</span><b>${p.t}</b><span class="d">${p.w}</span><span class="m kd">${kinds(p)}</span><span class="m yr">${p.y}</span><span class="go" aria-hidden="true">→</span></a>`).join('');
+  peek.innerHTML = P.map((p) => `<div class="pk" data-s="${p.s}">${FRAME(p)}</div>`).join('');
+  const pk = (s) => peek.querySelector(`[data-s="${s}"]`);
+  let px = 0, py = 0, tx = 0, ty = 0, raf = 0;
+  const loop = () => { px += (tx - px) * .18; py += (ty - py) * .18; peek.style.transform = `translate(${px + 28}px, ${py - peek.offsetHeight / 2}px) rotate(${Math.max(-8, Math.min(8, (tx - px) * .04))}deg)`; raf = requestAnimationFrame(loop); };
+  idx.querySelectorAll('.ix').forEach((a) => {
+    a.addEventListener('mouseenter', (e) => { peek.querySelectorAll('.pk').forEach((x) => x.classList.toggle('on', x.dataset.s === a.dataset.s)); peek.classList.add('on'); if (!raf) { px = tx = e.clientX; py = ty = e.clientY; loop(); } });
+    a.addEventListener('mouseleave', () => peek.classList.remove('on'));
+  });
+  addEventListener('mousemove', (e) => { tx = e.clientX; ty = e.clientY; });
+  // filters and view switch
+  const btns = document.querySelectorAll('.tags button'), count = document.getElementById('count');
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    let n = 0; idx.querySelectorAll('.ix').forEach((r) => { r.hidden = b.dataset.f !== 'all' && !r.dataset.k.split(' ').includes(b.dataset.f); if (!r.hidden) n++; });
+    count.textContent = `Showing ${n}`;
+  }));
+  document.querySelectorAll('.view button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.view button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    idx.classList.toggle('grid', b.dataset.v === 'grid');
+    try { localStorage.setItem('gs-view', b.dataset.v); } catch (e) {}
+  }));
+  try { if (localStorage.getItem('gs-view') === 'grid') document.querySelector('.view [data-v="grid"]').click(); } catch (e) {}
+</script>
+</body>
+</html>
