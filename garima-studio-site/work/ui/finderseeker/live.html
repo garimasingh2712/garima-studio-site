@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinderSeeker, find it</title>
+<style>
+/* FinderSeeker as a small game: your pointer is the phone. The rings on the Buzz screen pulse faster as you get closer.
+   Built from Garima's screens: iOS grey, amber icons and rings, the bear. */
+@font-face { font-family: 'FS'; src: url('../clima/fonts/inter-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'FS'; src: url('../clima/fonts/inter-latin-500-normal.woff2') format('woff2'); font-weight: 500 700; }
+:root { --amber: #D39042; --amber-d: #B9772C; --grey: #D2D2D2; --list: #ECECEC; --ink: #111; --blue: #1E88E5; --floor: #F4EADB; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: transparent; font-family: 'FS', -apple-system, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 26px; align-items: center; padding: 8px 10px 14px; max-width: 1080px; margin: 0 auto; }
+.room { position: relative; border-radius: 22px; overflow: hidden; background: var(--floor); aspect-ratio: 16 / 10; cursor: none; touch-action: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.room svg.map { position: absolute; inset: 0; width: 100%; height: 100%; }
+.room:focus-visible { outline: 3px solid var(--amber-d); outline-offset: 3px; }
+.me { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; pointer-events: none; z-index: 3; }
+.me i { position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--amber); animation: ping var(--p, 1.6s) ease-out infinite; opacity: 0; }
+.me i:nth-child(2) { animation-delay: calc(var(--p, 1.6s) / 2); }
+.me b { position: absolute; left: 13px; top: 8px; width: 18px; height: 28px; border-radius: 5px; background: #111; box-shadow: 0 0 0 2px #fff; }
+@keyframes ping { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
+.item { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; opacity: 0; transform: scale(.4); transition: opacity .3s, transform .45s cubic-bezier(.3,1.6,.5,1); z-index: 2; pointer-events: none; }
+.item.found { opacity: 1; transform: none; }
+.found-tag { position: absolute; z-index: 4; padding: 6px 12px; border-radius: 99px; background: #111; color: #fff; font: 500 13px 'FS'; transform: translate(-50%, -64px); opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+.found-tag.on { opacity: 1; }
+.hint { position: absolute; left: 14px; bottom: 12px; z-index: 3; font: 500 12px 'FS'; background: rgba(255,255,255,.85); padding: 6px 10px; border-radius: 99px; }
+/* the phone: the Buzz screen */
+.phone { width: 270px; aspect-ratio: 390 / 760; border-radius: 40px; padding: 8px; background: #111; box-shadow: 0 30px 60px -30px rgba(0,0,0,.5); }
+.scr { height: 100%; border-radius: 33px; overflow: hidden; background: var(--grey); display: flex; flex-direction: column; container-type: inline-size; position: relative; }
+.bar { background: #F7F7F7; padding: 12px 16px 10px; text-align: center; font: 600 14px 'FS'; border-bottom: 1px solid #c8c8c8; position: relative; }
+.bar small { position: absolute; left: 16px; top: 13px; font: 600 12px 'FS'; }
+.bar a { position: absolute; right: 14px; top: 12px; color: var(--blue); font-weight: 500; text-decoration: none; }
+.chips { display: flex; gap: 6px; justify-content: center; padding: 12px 8px 0; }
+.chips button { display: flex; flex-direction: column; align-items: center; gap: 3px; border: 0; background: var(--list); border-radius: 12px; padding: 7px 8px 6px; font: 500 11px 'FS'; color: #333; cursor: pointer; width: 31%; }
+.chips button svg { width: 30px; height: 26px; }
+.chips button[aria-pressed="true"] { background: #fff; box-shadow: 0 0 0 2px var(--amber); }
+.chips button:focus-visible { outline: 2px solid var(--blue); }
+.title { text-align: center; margin-top: 16px; font: 700 26px 'FS'; letter-spacing: -.01em; }
+.sig { display: flex; justify-content: center; gap: 22px; margin-top: 6px; }
+.sig svg { width: 20px; height: 20px; }
+.rings { position: relative; width: 74%; aspect-ratio: 1; margin: 14px auto 0; }
+.rings i { position: absolute; inset: 0; border-radius: 50%; border: 5px solid var(--amber); }
+.rings i:nth-child(2) { inset: 11%; } .rings i:nth-child(3) { inset: 22%; }
+.rings i.w { animation: wave var(--p, 1.6s) ease-out infinite; border-width: 3px; opacity: 0; }
+@keyframes wave { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.15); opacity: 0; } }
+.rings svg { position: absolute; left: 33%; top: 36%; width: 34%; height: 28%; }
+.temp { text-align: center; margin-top: 12px; font: 600 15px 'FS'; min-height: 20px; }
+.meter { display: flex; gap: 4px; justify-content: center; margin-top: 6px; }
+.meter i { width: 18px; height: 6px; border-radius: 3px; background: #bdbdbd; transition: background .2s; }
+.meter i.on { background: var(--amber); }
+.stop { margin: auto 16px 18px; border: 0; border-radius: 12px; background: var(--amber); color: #fff; font: 600 16px 'FS'; padding: 13px; cursor: pointer; }
+.stop:hover { background: var(--amber-d); }
+.bear { position: absolute; inset: 0; background: rgba(255,255,255,.92); display: grid; place-content: center; justify-items: center; gap: 8px; text-align: center; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.bear.on { opacity: 1; pointer-events: auto; }
+.bear b { font: 700 20px 'FS'; } .bear span { font-size: 13px; color: #555; max-width: 190px; }
+.bear button { margin-top: 6px; border: 0; background: var(--amber); color: #fff; border-radius: 10px; padding: 9px 16px; font: 600 14px 'FS'; cursor: pointer; }
+@media (max-width: 760px) { .rings { width: 62%; margin-top: 8px; } .title { margin-top: 10px; font-size: 22px; } .wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; } .room { width: 100%; } .phone { width: min(250px, 70vw); } }
+@media (prefers-reduced-motion: reduce) { .me i, .rings i.w { animation-duration: 3s !important; } }
+</style></head>
+<body>
+<div class="wrap">
+  <div class="room" id="room" tabindex="0" aria-label="A living room. Move your pointer, or use the arrow keys, to search with the phone.">
+    <svg class="map" viewBox="0 0 800 500" aria-hidden="true">
+      <!-- floor boards -->
+      <g stroke="#E8DCC8" stroke-width="2"><path d="M0 100H800M0 200H800M0 300H800M0 400H800"/></g>
+      <!-- rug -->
+      <rect x="250" y="190" width="300" height="190" rx="22" fill="#EBC79A"/><rect x="268" y="208" width="264" height="154" rx="14" fill="none" stroke="#E0B47E" stroke-width="4" stroke-dasharray="10 8"/>
+      <!-- sofa -->
+      <rect x="250" y="70" width="300" height="90" rx="22" fill="#BDBDBD"/><rect x="262" y="92" width="88" height="56" rx="12" fill="#CFCFCF"/><rect x="356" y="92" width="88" height="56" rx="12" fill="#CFCFCF"/><rect x="450" y="92" width="88" height="56" rx="12" fill="#CFCFCF"/>
+      <!-- coffee table -->
+      <rect x="330" y="245" width="140" height="80" rx="14" fill="#9C6B3C"/><circle cx="370" cy="275" r="12" fill="#F4EADB"/><rect x="410" y="290" width="40" height="22" rx="4" fill="#E8DCC8"/>
+      <!-- bookshelf -->
+      <rect x="40" y="40" width="70" height="300" rx="8" fill="#8A5A30"/><g fill="#D39042"><rect x="50" y="56" width="50" height="10" rx="2"/><rect x="50" y="116" width="50" height="10" rx="2"/><rect x="50" y="176" width="50" height="10" rx="2"/><rect x="50" y="236" width="50" height="10" rx="2"/><rect x="50" y="296" width="50" height="10" rx="2"/></g>
+      <!-- plant -->
+      <circle cx="660" cy="110" r="34" fill="#6E9F5E"/><circle cx="690" cy="85" r="22" fill="#86B574"/><circle cx="636" cy="80" r="20" fill="#86B574"/><circle cx="662" cy="118" r="18" fill="#C98A5A"/>
+      <!-- armchair -->
+      <rect x="610" y="250" width="120" height="110" rx="24" fill="#C9C9C9"/><rect x="626" y="268" width="88" height="74" rx="14" fill="#DADADA"/>
+      <!-- door and mat -->
+      <rect x="690" y="430" width="90" height="70" fill="#E8DCC8"/><rect x="700" y="430" width="70" height="40" rx="6" fill="#B9772C"/>
+      <!-- lamp and side table -->
+      <circle cx="180" cy="420" r="34" fill="#E3D3BC"/><circle cx="180" cy="420" r="14" fill="#F7D488"/>
+    </svg>
+    <div class="item" id="it" aria-hidden="true"></div>
+    <div class="found-tag" id="ftag">Found it</div>
+    <div class="me" id="me"><i></i><i></i><b></b></div>
+    <span class="hint" id="hint">Move to search. The rings speed up as you get closer.</span>
+  </div>
+
+  <div class="phone"><div class="scr">
+    <div class="bar"><small>9:41</small>My Keys<a>Home</a></div>
+    <div class="chips" id="chips"></div>
+    <p class="title" id="ttl">Glasses</p>
+    <div class="sig"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1" fill="#111"/></svg></div>
+    <div class="rings" id="rings"><i></i><i></i><i></i><i class="w"></i><svg id="ricon" viewBox="0 0 60 40"></svg></div>
+    <p class="temp" id="temp">Searching…</p>
+    <div class="meter" id="meter"><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="stop" type="button" id="stop">Stop</button>
+    <div class="bear" id="bear">
+      <svg width="96" height="96" viewBox="0 0 100 100"><circle cx="22" cy="22" r="16" fill="#D39042"/><circle cx="78" cy="22" r="16" fill="#D39042"/><circle cx="50" cy="52" r="38" fill="#D39042" stroke="#111" stroke-width="3"/><circle cx="36" cy="46" r="6" fill="#111"/><circle cx="64" cy="46" r="6" fill="#111"/><ellipse cx="50" cy="64" rx="9" ry="11" fill="#111"/><path d="M80 80l14 14" stroke="#111" stroke-width="8" stroke-linecap="round"/></svg>
+      <b id="btxt">Found your glasses</b><span>Behind the bookshelf, where you left them on Tuesday.</span>
+      <button type="button" id="again">Hide something else</button>
+    </div>
+  </div></div>
+</div>
+<script>
+const ICONS = {
+  glasses: '<g fill="#D39042"><rect x="2" y="12" width="24" height="22" rx="7"/><rect x="34" y="12" width="24" height="22" rx="7"/><path d="M24 18h12v5H24z"/><path d="M6 14L12 2M54 14L48 2" stroke="#D39042" stroke-width="4" stroke-linecap="round"/></g>',
+  keys: '<g fill="#D39042"><circle cx="14" cy="20" r="12"/><circle cx="14" cy="20" r="5" fill="#fff"/><rect x="24" y="16" width="34" height="8" rx="2"/><rect x="44" y="22" width="5" height="10"/><rect x="52" y="22" width="5" height="8"/></g>',
+  purse: '<g fill="#D39042"><path d="M8 14h44l-6 26H14z"/><path d="M20 14c0-14 20-14 20 0" fill="none" stroke="#D39042" stroke-width="4"/><path d="M24 18l6 10 6-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></g>',
+};
+const NAMES = { glasses: 'Glasses', keys: 'Keys', purse: 'Purse' };
+const SPOTS = { glasses: [[90, 210, 'Behind the bookshelf, where you left them on Tuesday.'], [670, 300, 'Down the side of the armchair.']], keys: [[735, 450, 'On the doormat. Of course.'], [410, 300, 'Under the post on the coffee table.']], purse: [[520, 150, 'Between the sofa cushions.'], [180, 420, 'By the lamp.']] };
+const room = document.getElementById('room'), me = document.getElementById('me'), it = document.getElementById('it'), ftag = document.getElementById('ftag');
+const chips = document.getElementById('chips'), meterI = [...document.querySelectorAll('#meter i')];
+chips.innerHTML = Object.keys(ICONS).map((k) => `<button type="button" data-k="${k}" aria-pressed="false"><svg viewBox="0 0 60 40">${ICONS[k]}</svg>${NAMES[k]}</button>`).join('');
+let target = 'glasses', spot = SPOTS.glasses[0], found = false, pos = [400, 250], touched = false, round = -1;
+const scale = () => room.clientWidth / 800;
+function choose(k) {
+  target = k; found = false; round++;
+  spot = SPOTS[k][round % SPOTS[k].length];
+  chips.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+  document.getElementById('ttl').textContent = NAMES[k];
+  document.getElementById('ricon').innerHTML = ICONS[k];
+  it.innerHTML = `<svg viewBox="0 0 60 40" width="64" height="44">${ICONS[k]}</svg>`;
+  it.classList.remove('found'); ftag.classList.remove('on'); document.getElementById('bear').classList.remove('on');
+  update();
+}
+function update() {
+  const s = scale(), d = Math.hypot(pos[0] - spot[0], pos[1] - spot[1]);
+  me.style.left = pos[0] * s + 'px'; me.style.top = pos[1] * s + 'px';
+  it.style.left = spot[0] * s + 'px'; it.style.top = spot[1] * s + 'px';
+  ftag.style.left = spot[0] * s + 'px'; ftag.style.top = spot[1] * s + 'px';
+  const p = Math.max(.35, Math.min(2.2, d / 220)).toFixed(2) + 's';
+  me.style.setProperty('--p', p); document.getElementById('rings').style.setProperty('--p', p);
+  const lv = d < 40 ? 5 : d < 110 ? 4 : d < 200 ? 3 : d < 320 ? 2 : 1;
+  meterI.forEach((m, n) => m.classList.toggle('on', n < lv));
+  document.getElementById('temp').textContent = found ? 'Found it' : ['', 'Cold', 'Getting warmer', 'Warm', 'Hot, very close', 'Right here'][lv];
+  if (!found && d < 40) {
+    found = true; it.classList.add('found'); ftag.classList.add('on');
+    document.getElementById('btxt').textContent = 'Found your ' + NAMES[target].toLowerCase();
+    document.querySelector('#bear span').textContent = spot[2];
+    setTimeout(() => document.getElementById('bear').classList.add('on'), 700);
+  }
+}
+function moveTo(x, y) { pos = [Math.max(10, Math.min(790, x)), Math.max(10, Math.min(490, y))]; update(); }
+room.addEventListener('pointermove', (e) => { touched = true; const r = room.getBoundingClientRect(); moveTo((e.clientX - r.left) / scale(), (e.clientY - r.top) / scale()); document.getElementById('hint').style.opacity = 0; });
+room.addEventListener('pointerdown', (e) => { touched = true; const r = room.getBoundingClientRect(); moveTo((e.clientX - r.left) / scale(), (e.clientY - r.top) / scale()); });
+room.addEventListener('keydown', (e) => { const m = { ArrowLeft: [-24, 0], ArrowRight: [24, 0], ArrowUp: [0, -24], ArrowDown: [0, 24] }[e.key]; if (!m) return; e.preventDefault(); touched = true; moveTo(pos[0] + m[0], pos[1] + m[1]); });
+chips.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { touched = true; choose(b.dataset.k); } });
+document.getElementById('again').addEventListener('click', () => { const ks = Object.keys(ICONS); touched = true; choose(ks[(ks.indexOf(target) + 1) % ks.length]); });
+document.getElementById('stop').addEventListener('click', () => { touched = true; choose(target); });
+addEventListener('resize', update);
+choose('glasses');
+// until someone joins in, the phone wanders towards the glasses by itself
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches || location.search.includes('still');
+if (!still) {
+  const path = [[400, 250], [560, 300], [460, 160], [260, 180], [160, 200], [110, 212], [92, 210]]; let n = 0;
+  const step = () => { if (touched) return; if (n < path.length) { const [x, y] = path[n++]; const [x0, y0] = pos; const t0 = performance.now();
+      const anim = (t) => { if (touched) return; const k = Math.min(1, (t - t0) / 900); moveTo(x0 + (x - x0) * k, y0 + (y - y0) * k); if (k < 1) requestAnimationFrame(anim); else setTimeout(step, 250); }; requestAnimationFrame(anim); }
+    else setTimeout(() => { if (!touched) { n = 0; choose('glasses'); pos = [400, 250]; round = -1; choose('glasses'); step(); } }, 3200); };
+  setTimeout(step, 900);
+}
+</script>
+</body></html>
